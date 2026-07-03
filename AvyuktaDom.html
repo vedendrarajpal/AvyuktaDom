@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avyukta Intellicall — Domestic Contact Centre Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --panel: #FFFFFF;
+      --panel2: #F1F5F9;
+      --line: #E2E8F0;
+      --cyan: #0284C7;
+      --amber: #D97706;
+      --text: #0F172A;
+      --muted: #475569;
+      --green: #059669;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-style: italic;
+      overflow: hidden;
+      height: 100%;
+      width: 100%;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .display {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .mono {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* Background signal grid */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(2, 132, 199, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(2, 132, 199, 0.03) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle at 50% 40%, rgba(0, 0, 0, 0.8), transparent 75%);
+    }
+
+    /* top progress */
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      z-index: 50;
+      background: var(--panel2);
+    }
+
+    .topbar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      width: 7.14%;
+      transition: width .6s cubic-bezier(.65, 0, .35, 1);
+      box-shadow: 0 1px 4px rgba(2, 132, 199, .3);
+    }
+
+    .deck {
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+      z-index: 1;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 86px 8vw 98px 8vw;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(60px);
+      transition: opacity .55s ease, transform .55s cubic-bezier(.65, 0, .35, 1);
+      overflow-y: auto;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--line);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0);
+      z-index: 2;
+    }
+
+    .slide.prev {
+      transform: translateX(-60px);
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--cyan);
+      font-size: 13px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .eyebrow::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px rgba(2, 132, 199, 0.4);
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .35;
+      }
+    }
+
+    h1.slide-title {
+      font-size: clamp(30px, 4.2vw, 52px);
+      font-weight: 700;
+      line-height: 1.1;
+      max-width: 950px;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .slide-sub {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 720px;
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    .accent {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .accent-amber {
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .content-area {
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* GENERIC CARD */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      transition: transform 0.25s cubic-bezier(.2, 1, .2, 1), box-shadow 0.25s cubic-bezier(.2, 1, .2, 1);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -6px rgba(15, 23, 42, 0.08);
+    }
+
+    .hero-panel {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(2, 132, 199, 0.16);
+      border-radius: 20px;
+      padding: 24px 24px 20px;
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.09), rgba(255, 255, 255, 0.98));
+      box-shadow: 0 18px 45px -22px rgba(15, 23, 42, 0.25);
+    }
+
+    .hero-panel::after {
+      content: '';
+      position: absolute;
+      inset: auto -20px -40px auto;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(79, 216, 255, 0.22), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-title {
+      font-size: clamp(24px, 3.2vw, 40px);
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+      max-width: 760px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .hero-title .accent {
+      display: inline-block;
+      color: var(--cyan);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(2, 132, 199, 0.16);
+      margin-bottom: 12px;
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(2, 132, 199, 0.12);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .stat-pill span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--cyan);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .term-card {
+      position: relative;
+      padding: 16px 16px 14px;
+      border-radius: 16px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 25px -16px rgba(15, 23, 42, 0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .term-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(2, 132, 199, 0.28);
+      box-shadow: 0 16px 30px -16px rgba(2, 132, 199, 0.18);
+    }
+
+    .term-card .term-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      font-size: 16px;
+      background: rgba(2, 132, 199, 0.09);
+    }
+
+    .term-card.warning .term-icon {
+      background: rgba(217, 119, 6, 0.12);
+    }
+
+    .term-card.success .term-icon {
+      background: rgba(5, 150, 105, 0.12);
+    }
+
+    .term-card p {
+      font-size: 12.8px;
+      line-height: 1.5;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .term-card a.link {
+      color: var(--cyan);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .term-card a.link:hover {
+      text-decoration: underline;
+    }
+
+    .image-card {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 10px 25px -16px rgba(15, 23, 42, 0.2);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .image-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(2, 132, 199, 0.24);
+      box-shadow: 0 18px 34px -18px rgba(2, 132, 199, 0.24);
+    }
+
+    .image-frame {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(2, 132, 199, 0.12);
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.07), rgba(255, 255, 255, 0.96));
+      padding: 6px;
+      min-height: 230px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f8fbff;
+    }
+
+    .image-frame img {
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+      display: block;
+      box-shadow: 0 8px 24px -14px rgba(15, 23, 42, 0.25);
+    }
+
+    .image-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-weight: 700;
+      color: var(--text);
+      font-size: 13.5px;
+    }
+
+    .image-caption span {
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: rgba(2, 132, 199, 0.08);
+      padding: 4px 8px;
+      border-radius: 999px;
+    }
+
+    /* GRID LAYOUTS */
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .g3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .g2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .g4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    @media(max-width:1024px) {
+
+      .g3,
+      .g2,
+      .g4 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead th {
+      text-align: left;
+      color: var(--text);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 12px;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--line);
+      background: var(--panel2);
+      position: sticky;
+      top: 0;
+    }
+
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.015);
+    }
+
+    tbody tr:hover {
+      background: rgba(2, 132, 199, 0.04);
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      max-height: 100%;
+      background: var(--panel2);
+    }
+
+    .highlight-col {
+      color: var(--cyan);
+      font-weight: 700;
+      background: rgba(2, 132, 199, 0.04);
+    }
+
+    .mono-cell {
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 500;
+    }
+
+    /* STAT */
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat .num {
+      font-size: clamp(28px, 3.5vw, 42px);
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .stat .lbl {
+      font-size: 13px;
+      color: var(--text);
+      letter-spacing: .03em;
+      font-weight: 500;
+    }
+
+    /* CHANNEL PILLARS */
+    .pillars {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .pillar {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px 14px;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.02), 0 2px 4px -1px rgba(15, 23, 42, 0.01);
+      transition: all 0.25s cubic-bezier(.2, 1, .2, 1);
+    }
+
+    .pillar:hover {
+      transform: translateY(-2px);
+      border-color: var(--cyan);
+      box-shadow: 0 10px 15px -3px rgba(2, 132, 199, 0.08), 0 4px 6px -4px rgba(2, 132, 199, 0.08);
+    }
+
+    .pillar .icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .pillar .label {
+      font-size: 13.5px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    ul.plain {
+      list-style: none;
+    }
+
+    ul.plain li {
+      position: relative;
+      padding-left: 22px;
+      margin-bottom: 10px;
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    ul.plain li::before {
+      content: '▶';
+      position: absolute;
+      left: 0;
+      top: 2px;
+      font-size: 11px;
+      color: var(--cyan);
+    }
+
+    ul.plain.amber li::before {
+      color: var(--amber);
+    }
+
+    ul.plain.green li::before {
+      color: var(--green);
+    }
+
+    .card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .card .tag {
+      display: inline-block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--cyan);
+      background: rgba(2, 132, 199, 0.08);
+      border: 1px solid rgba(2, 132, 199, 0.15);
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .card .tag.amber {
+      color: var(--amber);
+      background: rgba(217, 119, 6, 0.08);
+      border-color: rgba(217, 119, 6, 0.15);
+    }
+
+    .card .tag.green {
+      color: var(--green);
+      background: rgba(5, 150, 105, 0.08);
+      border-color: rgba(5, 150, 105, 0.15);
+    }
+
+    /* NAV CONTROLS */
+    .nav-arrow {
+      position: fixed;
+      top: 0;
+      height: 100%;
+      width: 8vw;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      transition: background 0.2s;
+    }
+
+    .nav-arrow:hover {
+      background: rgba(15, 23, 42, 0.02);
+    }
+
+    .nav-arrow.left {
+      left: 0;
+      justify-content: flex-start;
+      padding-left: 20px;
+    }
+
+    .nav-arrow.right {
+      right: 0;
+      justify-content: flex-end;
+      padding-right: 20px;
+    }
+
+    .nav-arrow svg {
+      opacity: 0.2;
+      transition: opacity .2s, stroke .2s;
+      stroke: var(--text);
+      width: 36px;
+      height: 36px;
+    }
+
+    .nav-arrow:hover svg {
+      opacity: 1;
+      stroke: var(--cyan);
+    }
+
+    .rail {
+      position: fixed;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 45;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--line);
+      cursor: pointer;
+      transition: all .25s;
+    }
+
+    .dot.active {
+      background: var(--cyan);
+      box-shadow: 0 0 8px rgba(2, 132, 199, 0.4);
+      height: 22px;
+      border-radius: 5px;
+    }
+
+    .footer-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      z-index: 45;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      font-size: 13px;
+      color: var(--muted);
+      background: linear-gradient(to top, var(--bg) 60%, transparent);
+      border-top: 1px solid var(--line);
+    }
+
+    .footer-bar .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .footer-bar .brand .dotb {
+      width: 7px;
+      height: 7px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(2, 132, 199, 0.4);
+    }
+
+    .footer-bar .idx {
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: .05em;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .footer-bar .hint {
+      opacity: .8;
+      color: var(--muted);
+    }
+
+    a.link {
+      color: var(--cyan);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(2, 132, 199, .4);
+      font-weight: 500;
+    }
+
+    a.link:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--cyan);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      margin-top: 20px;
+      transition: transform .15s, box-shadow .15s;
+      width: fit-content;
+      box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2), 0 2px 4px -1px rgba(2, 132, 199, 0.1);
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(2, 132, 199, 0.35);
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .flow .step {
+      flex: 1;
+      text-align: center;
+    }
+
+    .flow .arrow {
+      color: var(--cyan);
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .small-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 16px;
+      line-height: 1.55;
+    }
+
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 130px;
+      margin-top: 16px;
+      margin-bottom: 10px;
+    }
+
+    .bars .bar {
+      flex: 1;
+      background: linear-gradient(180deg, var(--cyan), #0284C7);
+      border-radius: 4px 4px 0 0;
+      position: relative;
+    }
+
+    .bars .bar span {
+      position: absolute;
+      top: -22px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    @media(max-width:760px) {
+      .slide {
+        padding: 76px 6vw 96px 6vw;
+      }
+
+      .rail {
+        display: none;
+      }
+
+      .nav-arrow {
+        width: 14vw;
+      }
+
+      .pillars {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .flow {
+        flex-direction: column;
+      }
+
+      .flow .arrow {
+        transform: rotate(90deg);
+        margin: 4px 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="topbar">
+    <div class="topbar-fill" id="topbarFill"></div>
+  </div>
+
+  <button class="nav-arrow left" id="btnLeft" aria-label="Previous slide">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  </button>
+  <button class="nav-arrow right" id="btnRight" aria-label="Next slide">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5">
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  </button>
+
+  <div class="rail" id="rail"></div>
+
+  <div class="footer-bar">
+    <div class="brand"><span class="dotb"></span> AVYUKTA INTELLICALL</div>
+    <div class="hint" id="hintText">Use ← → or swipe to navigate</div>
+    <div class="idx" id="idxText">CH 01 / 14</div>
+  </div>
+
+  <div class="deck" id="deck">
+
+    <!-- SLIDE 1: HERO -->
+    <section class="slide" style="flex-direction:row; gap:30px; align-items:center; padding-top:60px; padding-bottom:60px;">
+      <!-- Left column -->
+      <div style="flex:1.2; display:flex; flex-direction:column; gap:12px; justify-content:center;">
+        <!-- Logo -->
+        <img src="logo1.png" alt="Avyukta Intellicall Logo"
+          style="height:38px; width:auto; object-fit:contain; object-position:left; filter:drop-shadow(0 2px 6px rgba(2,132,199,.2));">
+
+        <div class="eyebrow" style="margin-top:2px; margin-bottom:6px;">Domestic Contact Centre Solution</div>
+        <h1 class="slide-title display" style="margin-top:0; font-size:clamp(24px, 3.2vw, 40px); line-height:1.15; margin-bottom:6px;">Every channel your calling desk needs, <span class="accent">under one dial tone.</span></h1>
+        <p class="slide-sub" style="font-size:14px; margin-bottom:12px; line-height:1.45;">Dialer · CRM · AI Caller · AI Chat Bot · HRMS · Meta · Google · Email · WhatsApp · Instagram/FB · SMS · RCS — routed over SIP, PRI, GSM or VoIP trunking, from a single sign-on.</p>
+
+        <!-- Stats row -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+          <div class="stat card" style="padding:8px 6px; border-radius:10px;">
+            <div class="num" style="font-size:16px;">16+ yrs</div>
+            <div class="lbl" style="font-size:10px;">Lowest prices since</div>
+          </div>
+          <div class="stat card" style="padding:8px 6px; border-radius:10px;">
+            <div class="num" style="font-size:16px;">700+</div>
+            <div class="lbl" style="font-size:10px;">Live clients</div>
+          </div>
+          <div class="stat card" style="padding:8px 6px; border-radius:10px;">
+            <div class="num" style="font-size:16px;">91 / 11</div>
+            <div class="lbl" style="font-size:10px;">Cities / countries</div>
+          </div>
+          <div class="stat card" style="padding:8px 6px; border-radius:10px;">
+            <div class="num" style="font-size:16px;">72 Hr</div>
+            <div class="lbl" style="font-size:10px;">Refund policy*</div>
+          </div>
+        </div>
+
+        <!-- Pillars -->
+        <div class="pillars" style="margin-top:4px; gap:10px;">
+          <div class="pillar" style="padding:8px 6px; border-radius:10px;"><div class="icon" style="font-size:16px; margin-bottom:2px;">☎</div><div class="label" style="font-size:11px;">Dialer</div></div>
+          <div class="pillar" style="padding:8px 6px; border-radius:10px;"><div class="icon" style="font-size:16px; margin-bottom:2px;">📶</div><div class="label" style="font-size:11px;">SIP / PRI / GSM</div></div>
+          <div class="pillar" style="padding:8px 6px; border-radius:10px;"><div class="icon" style="font-size:16px; margin-bottom:2px;">🧑‍💻</div><div class="label" style="font-size:11px;">Agent Console</div></div>
+          <div class="pillar" style="padding:8px 6px; border-radius:10px;"><div class="icon" style="font-size:16px; margin-bottom:2px;">🛡</div><div class="label" style="font-size:11px;">Compliance</div></div>
+        </div>
+
+        <div class="small-note" style="margin-top:6px; font-size:12px;">Free live demo · Paid PoC · Sandbox available on request — <a class="link" href="https://www.avyukta.in" target="_blank">www.avyukta.in</a></div>
+      </div>
+
+      <!-- Right column: hero image -->
+      <div style="flex:0.8; display:flex; align-items:center; justify-content:center;">
+        <img src="Avyukta1.png" alt="Avyukta Platform Dashboard"
+          style="width:100%; max-width:440px; border-radius:12px; box-shadow:0 8px 30px rgba(2,132,199,.15); object-fit:cover; border:1.5px solid var(--line);">
+      </div>
+    </section>
+
+    <!-- SLIDE 2: SIP/PRI/GSM + Predictive dialer why -->
+    <section class="slide">
+      <div class="eyebrow">Trunking Architecture</div>
+      <h1 class="slide-title display">Choose your <span class="accent">line</span>, choose your <span class="accent-amber">math.</span></h1>
+      <p class="slide-sub" style="margin-bottom:14px;">Two ways in, two ways to host — then a dialing mode that decides how much of your agent hour is actually spent talking.</p>
+      <div class="content-area grid g3" style="align-content:start; gap:16px;">
+        
+        <!-- Card 1: Trunking Options -->
+        <div class="card" style="padding:16px 20px; display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+          <div>
+            <span class="tag" style="margin-bottom:8px;">Telco / Trunking</span>
+            <h3 style="font-size:15px; margin-bottom:4px; font-weight:700;">Option 1 · SIP / PRI</h3>
+            <p style="font-size:12.5px; color:var(--muted); line-height:1.4; margin-bottom:12px;">Transactional, opt-in client calling only — 094XX (mobile), 079/080/0744 (mobile-like), or CNAM name display.</p>
+            <h3 style="font-size:15px; margin-bottom:4px; font-weight:700; border-top:1px solid var(--line); padding-top:10px;">Option 2 · GSM Gateway</h3>
+            <p style="font-size:12.5px; color:var(--muted); line-height:1.4; margin-bottom:0;">Cold calling, promotional campaigns and sales outreach — where SIP is not permitted.</p>
+          </div>
+        </div>
+
+        <!-- Card 2: Hosting Options -->
+        <div class="card" style="padding:16px 20px; display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+          <div>
+            <span class="tag amber" style="margin-bottom:8px;">Architecture</span>
+            <h3 style="font-size:15px; margin-bottom:4px; font-weight:700;">Hosted / Cloud</h3>
+            <p style="font-size:12.5px; color:var(--muted); line-height:1.4; margin-bottom:12px;">India-based compliant hosting. Hybrid or dedicated server, backup, HA, DR, NAS, Acronis add-ons.</p>
+            <h3 style="font-size:15px; margin-bottom:4px; font-weight:700; border-top:1px solid var(--line); padding-top:10px;">Premised / In-house</h3>
+            <p style="font-size:12.5px; color:var(--muted); line-height:1.4; margin-bottom:0;">Local server on your floor — dialer, server, firewall and UTM add-ons available.</p>
+          </div>
+        </div>
+
+        <!-- Card 3: Predictive Dialer stats -->
+        <div class="card" style="padding:16px 20px; display:flex; flex-direction:column; justify-content:space-between; height:100%;">
+          <div>
+            <span class="tag green" style="margin-bottom:8px;">Efficiency</span>
+            <h3 style="font-size:14px; margin-bottom:6px; font-weight:700; line-height:1.2;">Dialing Mode Utilization</h3>
+            <div class="bars" style="height:90px; margin-top:8px; margin-bottom:8px; gap:8px;">
+              <div class="bar" style="height:22%;"><span style="font-size:10px; top:-16px;">Man (22%)</span></div>
+              <div class="bar" style="height:44%;"><span style="font-size:10px; top:-16px;">Prog (44%)</span></div>
+              <div class="bar" style="height:68%;"><span style="font-size:10px; top:-16px;">Pred (68%)</span></div>
+              <div class="bar" style="height:100%; background:linear-gradient(180deg, var(--amber), #b45309);"><span style="font-size:10px; top:-16px; white-space:nowrap;">OBD (100%)</span></div>
+            </div>
+            <p style="font-size:11.5px; color:var(--muted); line-height:1.4; margin-top:18px;">At ₹15,000/agent/mo, 20 manual agents can be replaced by ~5 dialer-assisted agents — saving ₹27L/annum.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Domestic calling possibilities pros/cons -->
+    <section class="slide">
+      <div class="eyebrow">Domestic Calling Possibilities</div>
+      <h1 class="slide-title display">Pick the CLI that matches <span class="accent">the campaign.</span></h1>
+      <p class="slide-sub" style="margin-bottom:12px;">Three routes to a domestic dial tone — each with a different pickup ratio, a different rulebook.</p>
+      <div class="content-area grid g3" style="align-content:start; gap:16px;">
+
+        <!-- Option 1 -->
+        <div class="card" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
+          <img src="sip_option1.png" alt="Hosted SIP 079/074/080"
+            style="width:100%; height:110px; object-fit:cover; border-radius:10px 10px 0 0; display:block;">
+          <div style="padding:12px 14px; flex:1; display:flex; flex-direction:column; gap:6px;">
+            <div>
+              <span class="tag" style="margin-bottom:4px; padding:2px 8px; font-size:10px;">Option 1</span>
+            </div>
+            <h3 style="margin:0 0 4px 0; font-size:14px; line-height:1.3; font-weight:700;">Hosted Dialer with SIP (079/074/080)</h3>
+            <p style="font-size:12px; color:var(--cyan); font-weight:600; margin:0 0 6px 0;">Mobile-Like CLI</p>
+            <ul class="plain" style="margin:0;">
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">Only for Transactional campaigns / Opt-in Leads</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">Unlimited Inbound and Outbound Calls (FUP*)</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">1–2 DIDs per channel included</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">Additional DID ₹400</li>
+              <li style="font-size:12.5px; margin-bottom:0px; line-height:1.35;">1 month advance + 2 months security</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Option 2 -->
+        <div class="card" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
+          <img src="sip_option2.png" alt="Hosted SIP 94xxxx Mobile CLI"
+            style="width:100%; height:110px; object-fit:cover; border-radius:10px 10px 0 0; display:block;">
+          <div style="padding:12px 14px; flex:1; display:flex; flex-direction:column; gap:6px;">
+            <div>
+              <span class="tag amber" style="margin-bottom:4px; padding:2px 8px; font-size:10px;">Option 2</span>
+            </div>
+            <h3 style="margin:0 0 4px 0; font-size:14px; line-height:1.3; font-weight:700;">Hosted Dialer with SIP 94****</h3>
+            <p style="font-size:12px; color:var(--amber); font-weight:600; margin:0 0 6px 0;">Mobile CLI</p>
+            <ul class="plain amber" style="margin:0;">
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">Mobile Like CLI for Better Pick Up Ratio</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">Only for Transactional campaigns / Opt-in Leads</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">3,500 mins/channel/month FUP</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">Additional DID ₹700/month</li>
+              <li style="font-size:12.5px; margin-bottom:0px; line-height:1.35;">6-month lock-in, quarterly billing</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Option 3 -->
+        <div class="card" style="padding:0; overflow:hidden; display:flex; flex-direction:column;">
+          <img src="gsm_option3.png" alt="Hosted Dialer with Client Procured GSM SIM"
+            style="width:100%; height:110px; object-fit:cover; border-radius:10px 10px 0 0; display:block;">
+          <div style="padding:12px 14px; flex:1; display:flex; flex-direction:column; gap:6px;">
+            <div>
+              <span class="tag green" style="margin-bottom:4px; padding:2px 8px; font-size:10px;">GSM Route</span>
+            </div>
+            <h3 style="margin:0 0 4px 0; font-size:14px; line-height:1.3; font-weight:700;">Hosted Dialer with Client GSM</h3>
+            <p style="font-size:12px; color:var(--green); font-weight:600; margin:0 0 6px 0;">VoLTE / Non-VoLTE SIM</p>
+            <ul class="plain green" style="margin:0;">
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">For both Transactional and promotional campaigns</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">Ideal for cold calling campaigns</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">GSM SIMs needs to be procured by client</li>
+              <li style="font-size:12.5px; margin-bottom:5px; line-height:1.35;">Display number = the SIM's own number</li>
+              <li style="font-size:12.5px; margin-bottom:0px; line-height:1.35;">Monthly billing, no lock-in or security</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+      <p class="small-note" style="margin-top:10px;">Pro tip: auto-dialing needs 1.5–2× the agent headcount to keep calls flowing back-to-back.</p>
+    </section>
+
+    <!-- SLIDE 4: Comparison chart -->
+    <section class="slide">
+      <div class="eyebrow">Benchmarked</div>
+      <h1 class="slide-title display">Why teams move to <span class="accent">Avyukta Cloud SIP.</span></h1>
+      <p class="slide-sub">Same trunk category, very different fine print — measured against three telco providers.</p>
+      <div class="content-area table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>SIP Parameter</th>
+              <th>Telco 1</th>
+              <th>Telco 2</th>
+              <th>Telco 3</th>
+              <th class="highlight-col">Avyukta</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Minimum commitment</td>
+              <td>1 Year</td>
+              <td>1 Year</td>
+              <td>1 Year</td>
+              <td class="highlight-col">Min 3 Months</td>
+            </tr>
+            <tr>
+              <td>WFH agents / cloud server</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+            <tr>
+              <td>94 Mobile-like CLI / DID</td>
+              <td>✓</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+            <tr>
+              <td>079 / 080 / 744 series mixing</td>
+              <td>—</td>
+              <td>✓</td>
+              <td>—</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+            <tr>
+              <td>Frequent DID or CLI change</td>
+              <td>—</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+            <tr>
+              <td>WFH agents or cloud / server</td>
+              <td>—</td>
+              <td>✓</td>
+              <td>—</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+            <tr>
+              <td>CNAM / name display / 160 series</td>
+              <td>✓</td>
+              <td>—</td>
+              <td>—</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+            <tr>
+              <td>Single-roof SIP + Dialer/AI/CRM</td>
+              <td>—</td>
+              <td>✓</td>
+              <td>—</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+            <tr>
+              <td>Delivery time</td>
+              <td>2 Months</td>
+              <td>3 Weeks</td>
+              <td>1 Month</td>
+              <td class="highlight-col">72 Hrs</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Domestic Dialer Options -->
+    <section class="slide">
+      <div class="eyebrow">Plan Matrix</div>
+      <h1 class="slide-title display">Four ways to run <span class="accent">the dialer.</span></h1>
+      <p class="slide-sub">From strict transactional SIP through to bring-your-own telco — one feature set underneath
+        all four.</p>
+      <div class="content-area table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Feature / Parameter</th>
+              <th>Opt.1 · SIP 079/074/080</th>
+              <th>Opt.2 · SIP 94xxxx</th>
+              <th>Opt.3 · GSM-based</th>
+              <th class="highlight-col">Opt.4 · Dialer Only</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Starting at</td>
+              <td class="mono-cell">₹900</td>
+              <td class="mono-cell">₹1,000</td>
+              <td class="mono-cell">₹550</td>
+              <td class="mono-cell highlight-col">₹400</td>
+            </tr>
+            <tr>
+              <td>Cold calling / lead gen</td>
+              <td>Restricted</td>
+              <td>Restricted</td>
+              <td>Yes</td>
+              <td class="highlight-col">Yes / No</td>
+            </tr>
+            <tr>
+              <td>Campaign type</td>
+              <td>Transactional / Opt-in</td>
+              <td>Transactional / Opt-in</td>
+              <td>Promotional + Transactional</td>
+              <td class="highlight-col">Telco dependent</td>
+            </tr>
+            <tr>
+              <td>Unlimited in + out</td>
+              <td>Yes</td>
+              <td>Yes (3,500 min/ch/mo FUP)</td>
+              <td>Telco dep. / self-procured</td>
+              <td class="highlight-col">Telco dep. / self-procured</td>
+            </tr>
+            <tr>
+              <td>Channels included</td>
+              <td>1–2 DIDs/channel</td>
+              <td>1 DID/channel</td>
+              <td>No. of customer SIMs</td>
+              <td class="highlight-col">Telco dep. / self-procured</td>
+            </tr>
+            <tr>
+              <td>Caller ID type</td>
+              <td>079/074/080 mobile-like</td>
+              <td>94xxxx mobile series</td>
+              <td>Self-procured SIM</td>
+              <td class="highlight-col">Customer SIM CLI</td>
+            </tr>
+            <tr>
+              <td>Additional DID cost</td>
+              <td>₹400/DID</td>
+              <td>₹700/DID/month</td>
+              <td>NA</td>
+              <td class="highlight-col">Telco dep. / self-procured</td>
+            </tr>
+            <tr>
+              <td>Lock-in period</td>
+              <td>No lock-in</td>
+              <td>6 months</td>
+              <td>None</td>
+              <td class="highlight-col">None</td>
+            </tr>
+            <tr>
+              <td>Advance / initial payment</td>
+              <td>2–3 months</td>
+              <td>3 months</td>
+              <td>1 month</td>
+              <td class="highlight-col">1 month</td>
+            </tr>
+            <tr>
+              <td>Billing cycle</td>
+              <td>Monthly</td>
+              <td>Quarterly</td>
+              <td>Monthly</td>
+              <td class="highlight-col">Rental / EMI / Hosted / Hybrid</td>
+            </tr>
+            <tr>
+              <td>AI Caller add-on from</td>
+              <td class="mono-cell">₹3.90</td>
+              <td class="mono-cell">₹3.90</td>
+              <td class="mono-cell">₹3.90</td>
+              <td class="mono-cell highlight-col">₹3.90</td>
+            </tr>
+            <tr>
+              <td>WhatsApp/FB/IG/Chat bot</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+            <tr>
+              <td>YouTube / Sheet / CRM integration</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td>✓</td>
+              <td class="highlight-col">✓</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Seat/Channel pricing -->
+    <section class="slide">
+      <div class="eyebrow">Rate Card</div>
+      <h1 class="slide-title display">Seat or Channel Wise Options : <span class="accent">Domestic Calling</span></h1>
+      <p class="slide-sub">Complete seat and channel pricing matrix for premised, hosted dialers, GSM hosting, and SIP trunks.</p>
+      
+      <style>
+        .table-ch6 th, .table-ch6 td {
+          font-size: 11px !important;
+          padding: 8px 10px !important;
+          white-space: normal !important;
+          text-align: center !important;
+          border: 1px solid var(--line) !important;
+        }
+        .table-ch6 th {
+          font-weight: 700 !important;
+          vertical-align: middle !important;
+          text-transform: none !important;
+          letter-spacing: normal !important;
+        }
+        .col-seats { background-color: #FEF9C3 !important; }
+        .col-premise { background-color: #FFFDF0 !important; }
+        .col-hosted { background-color: #ECFEFF !important; }
+        .col-gsm { background-color: #F3E8FF !important; }
+        .col-sip79 { background-color: #FFEDD5 !important; }
+        .col-sip94 { background-color: #DCFCE7 !important; }
+      </style>
+
+      <div class="content-area table-wrap">
+        <table class="table-ch6">
+          <thead>
+            <tr>
+              <th class="col-seats">Minimum Seats</th>
+              <th class="col-premise">RATE Per Seat MONTH : Premised Dialer Rental</th>
+              <th class="col-premise">COST Per MONTH : Premised Dialer Rental</th>
+              <th class="col-hosted">RATE Per SEAT MONTH : Hosted Dialer</th>
+              <th class="col-hosted">COST Per MONTH : Hosted Dialer</th>
+              <th class="col-gsm">RATE Per CHANNEL Per MONTH : Hosted Dialer with GSM HOSTING ( CHANNEL and NOT SEAT )</th>
+              <th class="col-gsm">COST Per MONTH : Hosted Dialer with GSM HOSTING</th>
+              <th class="col-sip79">RATE Per CHANNEL Per MONTH : Hosted Dialer with 744/612/731/80/79 SIP Channel with 1 or 2 X DID / Channel / Month ( CHANNEL and NOT SEAT )</th>
+              <th class="col-sip79">Net Initial Payment (1 Month Advance + 2 Months Adjustable Security) : 79*** (Mobile Like CLI SIP)</th>
+              <th class="col-sip94">RATE Per CHANNEL Per MONTH : Hosted Dialer with 94** SIP including 1 X DID / Channel / Month ( CHANNEL and NOT SEAT )</th>
+              <th class="col-sip94">Net Initial Payment (Quarterly payment only) : 94*** (Mobile Like CLI SIP)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono-cell col-seats">1</td>
+              <td class="mono-cell col-premise">₹5,000</td>
+              <td class="mono-cell col-premise">₹5,000</td>
+              <td class="mono-cell col-hosted">₹5,000</td>
+              <td class="mono-cell col-hosted">₹5,000</td>
+              <td class="mono-cell col-gsm">₹7,000</td>
+              <td class="mono-cell col-gsm">₹7,000</td>
+              <td class="mono-cell col-sip79">₹7,500</td>
+              <td class="mono-cell col-sip79">₹22,500</td>
+              <td class="mono-cell col-sip94">₹7,500</td>
+              <td class="mono-cell col-sip94">₹22,500</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">2</td>
+              <td class="mono-cell col-premise">₹3,000</td>
+              <td class="mono-cell col-premise">₹6,000</td>
+              <td class="mono-cell col-hosted">₹3,000</td>
+              <td class="mono-cell col-hosted">₹6,000</td>
+              <td class="mono-cell col-gsm">₹3,500</td>
+              <td class="mono-cell col-gsm">₹7,000</td>
+              <td class="mono-cell col-sip79">₹4,000</td>
+              <td class="mono-cell col-sip79">₹24,000</td>
+              <td class="mono-cell col-sip94">₹4,000</td>
+              <td class="mono-cell col-sip94">₹24,000</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">3</td>
+              <td class="mono-cell col-premise">₹2,000</td>
+              <td class="mono-cell col-premise">₹6,000</td>
+              <td class="mono-cell col-hosted">₹2,000</td>
+              <td class="mono-cell col-hosted">₹6,000</td>
+              <td class="mono-cell col-gsm">₹2,500</td>
+              <td class="mono-cell col-gsm">₹7,500</td>
+              <td class="mono-cell col-sip79">₹3,500</td>
+              <td class="mono-cell col-sip79">₹31,500</td>
+              <td class="mono-cell col-sip94">₹3,500</td>
+              <td class="mono-cell col-sip94">₹31,500</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">4</td>
+              <td class="mono-cell col-premise">₹1,500</td>
+              <td class="mono-cell col-premise">₹6,000</td>
+              <td class="mono-cell col-hosted">₹1,500</td>
+              <td class="mono-cell col-hosted">₹6,000</td>
+              <td class="mono-cell col-gsm">₹1,875</td>
+              <td class="mono-cell col-gsm">₹7,500</td>
+              <td class="mono-cell col-sip79">₹3,000</td>
+              <td class="mono-cell col-sip79">₹36,000</td>
+              <td class="mono-cell col-sip94">₹3,000</td>
+              <td class="mono-cell col-sip94">₹36,000</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">5</td>
+              <td class="mono-cell col-premise">₹1,400</td>
+              <td class="mono-cell col-premise">₹7,000</td>
+              <td class="mono-cell col-hosted">₹1,400</td>
+              <td class="mono-cell col-hosted">₹7,000</td>
+              <td class="mono-cell col-gsm">₹1,500</td>
+              <td class="mono-cell col-gsm">₹7,500</td>
+              <td class="mono-cell col-sip79">₹2,500</td>
+              <td class="mono-cell col-sip79">₹37,500</td>
+              <td class="mono-cell col-sip94">₹2,500</td>
+              <td class="mono-cell col-sip94">₹37,500</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">10</td>
+              <td class="mono-cell col-premise">₹1,000</td>
+              <td class="mono-cell col-premise">₹10,000</td>
+              <td class="mono-cell col-hosted">₹1,000</td>
+              <td class="mono-cell col-hosted">₹10,000</td>
+              <td class="mono-cell col-gsm">₹1,100</td>
+              <td class="mono-cell col-gsm">₹11,000</td>
+              <td class="mono-cell col-sip79">₹1,450</td>
+              <td class="mono-cell col-sip79">₹43,500</td>
+              <td class="mono-cell col-sip94">₹1,450</td>
+              <td class="mono-cell col-sip94">₹43,500</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">15</td>
+              <td class="mono-cell col-premise">₹800</td>
+              <td class="mono-cell col-premise">₹12,000</td>
+              <td class="mono-cell col-hosted">₹900</td>
+              <td class="mono-cell col-hosted">₹13,500</td>
+              <td class="mono-cell col-gsm">₹1,000</td>
+              <td class="mono-cell col-gsm">₹15,000</td>
+              <td class="mono-cell col-sip79">₹1,350</td>
+              <td class="mono-cell col-sip79">₹60,750</td>
+              <td class="mono-cell col-sip94">₹1,450</td>
+              <td class="mono-cell col-sip94">₹65,250</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">20</td>
+              <td class="mono-cell col-premise">₹700</td>
+              <td class="mono-cell col-premise">₹14,000</td>
+              <td class="mono-cell col-hosted">₹800</td>
+              <td class="mono-cell col-hosted">₹16,000</td>
+              <td class="mono-cell col-gsm">₹900</td>
+              <td class="mono-cell col-gsm">₹18,000</td>
+              <td class="mono-cell col-sip79">₹1,250</td>
+              <td class="mono-cell col-sip79">₹75,000</td>
+              <td class="mono-cell col-sip94">₹1,250</td>
+              <td class="mono-cell col-sip94">₹75,000</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">30</td>
+              <td class="mono-cell col-premise">₹600</td>
+              <td class="mono-cell col-premise">₹18,000</td>
+              <td class="mono-cell col-hosted">₹700</td>
+              <td class="mono-cell col-hosted">₹21,000</td>
+              <td class="mono-cell col-gsm">₹800</td>
+              <td class="mono-cell col-gsm">₹24,000</td>
+              <td class="mono-cell col-sip79">₹1,150</td>
+              <td class="mono-cell col-sip79">₹103,500</td>
+              <td class="mono-cell col-sip94">₹1,250</td>
+              <td class="mono-cell col-sip94">₹112,500</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">50</td>
+              <td class="mono-cell col-premise">₹500</td>
+              <td class="mono-cell col-premise">₹25,000</td>
+              <td class="mono-cell col-hosted">₹600</td>
+              <td class="mono-cell col-hosted">₹30,000</td>
+              <td class="mono-cell col-gsm">₹700</td>
+              <td class="mono-cell col-gsm">₹35,000</td>
+              <td class="mono-cell col-sip79">₹1,050</td>
+              <td class="mono-cell col-sip79">₹157,500</td>
+              <td class="mono-cell col-sip94">₹1,200</td>
+              <td class="mono-cell col-sip94">₹180,000</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">100</td>
+              <td class="mono-cell col-premise">₹400</td>
+              <td class="mono-cell col-premise">₹40,000</td>
+              <td class="mono-cell col-hosted">₹500</td>
+              <td class="mono-cell col-hosted">₹50,000</td>
+              <td class="mono-cell col-gsm">₹600</td>
+              <td class="mono-cell col-gsm">₹60,000</td>
+              <td class="mono-cell col-sip79">₹950</td>
+              <td class="mono-cell col-sip79">₹285,000</td>
+              <td class="mono-cell col-sip94">₹1,150</td>
+              <td class="mono-cell col-sip94">₹345,000</td>
+            </tr>
+            <tr>
+              <td class="mono-cell col-seats">100+</td>
+              <td class="col-premise">Custom</td>
+              <td class="col-premise">Custom</td>
+              <td class="col-hosted">Custom</td>
+              <td class="col-hosted">Custom</td>
+              <td class="col-gsm">Custom</td>
+              <td class="col-gsm">Custom</td>
+              <td class="col-sip79">Custom</td>
+              <td class="col-sip79">Custom</td>
+              <td class="col-sip94">Custom</td>
+              <td class="col-sip94">Custom</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small-note">Full seat-wise rate sheet: <a class="link" href="https://bit.ly/Avyukta-Rates"
+          target="_blank">bit.ly/Avyukta-Rates</a></p>
+    </section>
+
+    <!-- SLIDE 7: Generic Terms -->
+    <section class="slide">
+      <div class="eyebrow">Generic Terms</div>
+      <div class="content-area" style="display:flex; flex-direction:column; gap:18px;">
+        <div class="hero-panel">
+          <div class="hero-badge">CH 07 · Commercial Guidelines</div>
+          <h1 class="slide-title display hero-title" style="margin-bottom:8px;">
+            <span>Platform usage guidelines</span>
+            <span class="accent">and commercial terms</span>
+          </h1>
+          <p class="slide-sub" style="margin-bottom:0;">A cleaner view of the compliance, billing, and rollout rules that keep domestic calling simple and predictable.</p>
+          <div class="hero-stats">
+            <div class="stat-pill"><span>01</span>Compliance-first</div>
+            <div class="stat-pill"><span>02</span>Transparent billing</div>
+            <div class="stat-pill"><span>03</span>Fast onboarding</div>
+          </div>
+        </div>
+
+        <div class="grid g3" style="align-content:start; gap:12px;">
+          <div class="term-card">
+            <div class="term-icon">📌</div>
+            <p>Rates are given at a 1:1 ratio for manual or inbound usage; consider 1:1.5 pacing for auto or predictive dialing.</p>
+          </div>
+          <div class="term-card warning">
+            <div class="term-icon">⚠️</div>
+            <p>For SIP plans, most telcos require one month advance, two months security, and two months termination notice.</p>
+          </div>
+          <div class="term-card success">
+            <div class="term-icon">✅</div>
+            <p>With written two-month notice, the last two months payment is not required for SIP plans.</p>
+          </div>
+          <div class="term-card">
+            <div class="term-icon">🚀</div>
+            <p>Retail and pay-as-you-go dialer or SIP plans are coming soon for smaller rollouts.</p>
+          </div>
+          <div class="term-card warning">
+            <div class="term-icon">📞</div>
+            <p>SIP must be used strictly for opt-in clients and transactional calls only.</p>
+          </div>
+          <div class="term-card success">
+            <div class="term-icon">🛡️</div>
+            <p>Non-adherence penalties can be adjusted from security if digital opt-in proof is unavailable within 48 hours of a complaint.</p>
+          </div>
+          <div class="term-card">
+            <div class="term-icon">🧾</div>
+            <p>Services are limited to legitimate campaigns, and eKYC plus ID proof are mandatory before demo access.</p>
+          </div>
+          <div class="term-card warning">
+            <div class="term-icon">📦</div>
+            <p>For GSM plans, clients must courier SIM cards to our Delhi DC, ideally with extra SIMs for spam-marking replacements.</p>
+          </div>
+          <div class="term-card success">
+            <div class="term-icon">🔗</div>
+            <p>Full seat-wise pricing is available here: <a class="link" href="https://bit.ly/Avyukta-Rates" target="_blank">bit.ly/Avyukta-Rates</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: 100+ Features + dashboards -->
+    <section class="slide">
+      <div class="eyebrow">Platform</div>
+      <h1 class="slide-title display" style="margin-bottom:8px;">100+ Features Included</h1>
+      <p class="slide-sub" style="margin-bottom:12px;">A powerful suite of call center modules built on in-house technologies.</p>
+      
+      <div class="content-area" style="display:flex; flex-direction:column; gap:12px;">
+        <div class="grid g4" style="gap:12px;">
+          <div class="card" style="text-align: center; padding: 14px 10px;">
+            <div style="font-size: 24px; margin-bottom: 6px;">🎧</div>
+            <span class="tag" style="margin-bottom:6px;">USP 1</span>
+            <p style="color:var(--text); font-size:12px; line-height:1.4; margin-bottom:0; font-weight:500;">Dialer Based CDR, Drag Drop Campaign wise DID, Admin based CLI Spam Marking</p>
+          </div>
+          <div class="card" style="text-align: center; padding: 14px 10px;">
+            <div style="font-size: 24px; margin-bottom: 6px;">🌐</div>
+            <span class="tag amber" style="margin-bottom:6px;">USP 2</span>
+            <p style="color:var(--text); font-size:12px; line-height:1.4; margin-bottom:0; font-weight:500;">WebRTC, OTP Based Lead / Vox Security, Lower than your lowest Bidder</p>
+          </div>
+          <div class="card" style="text-align: center; padding: 14px 10px;">
+            <div style="font-size: 24px; margin-bottom: 6px;">📊</div>
+            <span class="tag green" style="margin-bottom:6px;">USP 3</span>
+            <p style="color:var(--text); font-size:12px; line-height:1.4; margin-bottom:0; font-weight:500;">700+ Live Clients, 4000+ Installations, 16+ Yrs of Experience, 24X6 Support</p>
+          </div>
+          <div class="card" style="text-align: center; padding: 14px 10px;">
+            <div style="font-size: 24px; margin-bottom: 6px;">🛠️</div>
+            <span class="tag" style="margin-bottom:6px;">USP 4</span>
+            <p style="color:var(--text); font-size:12px; line-height:1.4; margin-bottom:0; font-weight:500;">Automated TL, CRM, Omni Channels, Telco, DID under single roof, All Inhouse</p>
+          </div>
+        </div>
+
+        <div style="text-align: center; background: var(--panel); border: 1px solid var(--line); padding: 8px 16px; border-radius: 9999px; font-weight: 600; font-size: 12.5px; color: var(--text); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+          To know more check out our Dialer-CRM Feature list : <a class="link" href="https://www.avyukta.in/feature-list" target="_blank">https://www.avyukta.in/feature-list</a>
+        </div>
+
+        <div class="grid g3" style="gap:16px;">
+          <div class="image-card" style="padding:10px;">
+            <div class="image-frame" style="height:auto; min-height:0; padding:0; border:none; background:none;">
+              <img src="DialerAdmin.png" alt="Admin" style="width:100%; height:auto; display:block; border-radius:8px; box-shadow:0 4px 12px rgba(15,23,42,0.08);">
+            </div>
+            <div class="image-caption" style="margin-top:8px;">
+              <span style="font-size:10px;">Admin</span>
+              <div style="font-size:12.5px; font-weight:700;">Admin Dashboard</div>
+            </div>
+          </div>
+          <div class="image-card" style="padding:10px;">
+            <div class="image-frame" style="height:auto; min-height:0; padding:0; border:none; background:none;">
+              <img src="DialerAgent.png" alt="Agent" style="width:100%; height:auto; display:block; border-radius:8px; box-shadow:0 4px 12px rgba(15,23,42,0.08);">
+            </div>
+            <div class="image-caption" style="margin-top:8px;">
+              <span style="font-size:10px;">Agent</span>
+              <div style="font-size:12.5px; font-weight:700;">Agent Dashboard</div>
+            </div>
+          </div>
+          <div class="image-card" style="padding:10px;">
+            <div class="image-frame" style="height:auto; min-height:0; padding:0; border:none; background:none;">
+              <img src="Dialermain.png" alt="Main" style="width:100%; height:auto; display:block; border-radius:8px; box-shadow:0 4px 12px rgba(15,23,42,0.08);">
+            </div>
+            <div class="image-caption" style="margin-top:8px;">
+              <span style="font-size:10px;">Main</span>
+              <div style="font-size:12.5px; font-weight:700;">Dialer Overview</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: Agent Page & Mobile App -->
+    <section class="slide slide-mockups">
+      <div class="eyebrow">Agent Mobile App</div>
+      <h1 class="slide-title display" style="margin-bottom:8px;">Agent Page : Mobile App is also available</h1>
+      <p class="slide-sub" style="margin-bottom:16px;">A comprehensive workstation for calling agents with full desktop and mobile parity.</p>
+
+      <div class="content-area grid g4" style="gap:16px; align-items:start;">
+        <!-- Phone Mockup 1 -->
+        <div class="phone-mockup">
+          <span class="tag" style="margin:0; font-size:10px;">Console</span>
+          <div class="phone-frame">
+            <img src="dialer App/agentPro.jpeg" alt="Agent profile and call workflow view">
+          </div>
+          <div class="phone-caption">
+            <div class="phone-title">Agent Profile</div>
+            <p class="phone-desc">Real-time queue details, caller ID, and call state control.</p>
+          </div>
+        </div>
+        <!-- Phone Mockup 2 -->
+        <div class="phone-mockup">
+          <span class="tag amber" style="margin:0; font-size:10px;">Chat</span>
+          <div class="phone-frame">
+            <img src="dialer App/agentchatadmin.jpeg" alt="Agent communication and admin collaboration view">
+          </div>
+          <div class="phone-caption">
+            <div class="phone-title">Collaboration</div>
+            <p class="phone-desc">Instant messaging with supervisors and team members.</p>
+          </div>
+        </div>
+        <!-- Phone Mockup 3 -->
+        <div class="phone-mockup">
+          <span class="tag green" style="margin:0; font-size:10px;">Monitor</span>
+          <div class="phone-frame">
+            <img src="dialer App/floor.jpeg" alt="Agent floor monitoring dashboard">
+          </div>
+          <div class="phone-caption">
+            <div class="phone-title">Floor View</div>
+            <p class="phone-desc">Supervisor dash showing active floor, calls, and states.</p>
+          </div>
+        </div>
+        <!-- Phone Mockup 4 -->
+        <div class="phone-mockup">
+          <span class="tag" style="margin:0; font-size:10px;">Stats</span>
+          <div class="phone-frame">
+            <img src="dialer App/PerformanceReport.jpeg" alt="Agent performance reporting dashboard">
+          </div>
+          <div class="phone-caption">
+            <div class="phone-title">Performance</div>
+            <p class="phone-desc">Detailed analytics, call logs, and hourly dials.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: Admin App -->
+    <section class="slide slide-mockups">
+      <div class="eyebrow">Admin Console</div>
+      <h1 class="slide-title display" style="margin-bottom:8px;">Admin Mobile App</h1>
+      <p class="slide-sub" style="margin-bottom:16px;">Comprehensive real-time command center for managers and administrators.</p>
+      
+      <div class="content-area grid g4" style="gap:16px; align-items:start;">
+        <!-- Phone Mockup 1 -->
+        <div class="phone-mockup">
+          <span class="tag" style="margin:0; font-size:10px;">Manager</span>
+          <div class="phone-frame">
+            <img src="dialer App/AppMain.jpeg" alt="Admin main interface">
+          </div>
+          <div class="phone-caption">
+            <div class="phone-title">Main Dashboard</div>
+            <p class="phone-desc">Consolidated view of active campaigns, agents, and DIDs.</p>
+          </div>
+        </div>
+        <!-- Phone Mockup 2 -->
+        <div class="phone-mockup">
+          <span class="tag amber" style="margin:0; font-size:10px;">Reports</span>
+          <div class="phone-frame">
+            <img src="dialer App/adminSummaryReport.jpeg" alt="Admin summary report">
+          </div>
+          <div class="phone-caption">
+            <div class="phone-title">Summary Report</div>
+            <p class="phone-desc">Hourly logs, call status, and diagnostic dashboards.</p>
+          </div>
+        </div>
+        <!-- Phone Mockup 3 -->
+        <div class="phone-mockup">
+          <span class="tag green" style="margin:0; font-size:10px;">Live</span>
+          <div class="phone-frame">
+            <img src="dialer App/RealtimjeReport.jpeg" alt="Admin real-time report">
+          </div>
+          <div class="phone-caption">
+            <div class="phone-title">Real-Time Data</div>
+            <p class="phone-desc">Active trunk lines, caller statistics, and channel rates.</p>
+          </div>
+        </div>
+        <!-- Phone Mockup 4 -->
+        <div class="phone-mockup">
+          <span class="tag" style="margin:0; font-size:10px;">System</span>
+          <div class="phone-frame">
+            <img src="dialer App/Setting.jpeg" alt="Admin settings and controls">
+          </div>
+          <div class="phone-caption">
+            <div class="phone-title">App Controls</div>
+            <p class="phone-desc">Dialer pacing, campaign status, and backend configuration.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <style>
+      .slide-mockups {
+        padding-top: 72px;
+        padding-bottom: 56px;
+      }
+      .phone-mockup {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        align-items: center;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 16px 12px 14px 12px;
+        box-shadow: 0 10px 25px -15px rgba(15, 23, 42, 0.08), 0 8px 16px -10px rgba(15, 23, 42, 0.04);
+        transition: transform 0.3s cubic-bezier(0.2, 1, 0.2, 1), box-shadow 0.3s cubic-bezier(0.2, 1, 0.2, 1), border-color 0.3s cubic-bezier(0.2, 1, 0.2, 1);
+      }
+      .phone-mockup .tag {
+        display: inline-block;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+        color: var(--cyan);
+        background: rgba(2, 132, 199, 0.08);
+        border: 1px solid rgba(2, 132, 199, 0.15);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+      }
+      .phone-mockup .tag.amber {
+        color: var(--amber);
+        background: rgba(217, 119, 6, 0.08);
+        border-color: rgba(217, 119, 6, 0.15);
+      }
+      .phone-mockup .tag.green {
+        color: var(--green);
+        background: rgba(5, 150, 105, 0.08);
+        border-color: rgba(5, 150, 105, 0.15);
+      }
+      .phone-mockup:hover {
+        transform: translateY(-5px);
+        border-color: rgba(2, 132, 199, 0.28);
+        box-shadow: 0 20px 35px -15px rgba(2, 132, 199, 0.15), 0 0 20px -8px rgba(2, 132, 199, 0.06);
+      }
+      .phone-frame {
+        position: relative;
+        background: #0F172A;
+        padding: 6px;
+        border-radius: 32px;
+        box-shadow: 0 12px 24px -10px rgba(15, 23, 42, 0.3), inset 0 1px 2px rgba(255,255,255,0.15);
+        border: 3.5px solid #1E293B;
+        width: 100%;
+        max-width: 170px;
+        aspect-ratio: 9 / 19.5;
+        overflow: hidden;
+      }
+      /* Screen reflection overlay */
+      .phone-frame::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 50%);
+        pointer-events: none;
+        z-index: 10;
+        border-radius: 28px;
+      }
+      /* Dynamic Island / Bezel notch */
+      .phone-frame::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 32px;
+        height: 8px;
+        background: #000000;
+        border-radius: 4px;
+        z-index: 12;
+        box-shadow: inset 0 0.5px 1px rgba(255,255,255,0.2);
+      }
+      .phone-frame img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        border-radius: 26px;
+        object-fit: cover;
+      }
+      .phone-caption {
+        text-align: center;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: center;
+      }
+      .phone-caption .phone-title {
+        font-weight: 700;
+        font-size: 13.5px;
+        color: var(--text);
+      }
+      .phone-caption .phone-desc {
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.4;
+        margin: 0;
+      }
+
+      /* Responsive adjustments for tablets and smaller desktops (max-width: 1200px) */
+      @media (max-width: 1200px) {
+        .slide-mockups {
+          padding-top: 72px;
+          padding-bottom: 56px;
+        }
+        .phone-frame {
+          max-width: 140px;
+          padding: 5px;
+          border-radius: 26px;
+          border-width: 3px;
+        }
+        .phone-frame::before {
+          top: 8px;
+          width: 28px;
+          height: 7px;
+        }
+        .phone-frame::after {
+          border-radius: 22px;
+        }
+        .phone-frame img {
+          border-radius: 21px;
+        }
+      }
+
+      /* Responsive adjustments for mobile and tablets (max-width: 768px) */
+      @media (max-width: 768px) {
+        .slide-mockups {
+          padding-top: 64px;
+          padding-bottom: 60px;
+        }
+        h1.slide-title {
+          font-size: 22px !important;
+          margin-bottom: 6px !important;
+          line-height: 1.25 !important;
+        }
+        .slide-sub {
+          font-size: 13px !important;
+          margin-bottom: 12px !important;
+          line-height: 1.5 !important;
+        }
+        .eyebrow {
+          font-size: 11px !important;
+          margin-bottom: 8px !important;
+        }
+        .content-area.grid.g4 {
+          display: flex !important;
+          flex-direction: row !important;
+          overflow-x: auto !important;
+          scroll-snap-type: x mandatory;
+          gap: 14px !important;
+          padding: 8px 4px 16px 4px !important;
+          width: 100%;
+          -webkit-overflow-scrolling: touch;
+        }
+        .content-area.grid.g4::-webkit-scrollbar {
+          height: 4px;
+        }
+        .content-area.grid.g4::-webkit-scrollbar-thumb {
+          background: var(--line);
+          border-radius: 2px;
+        }
+        .phone-mockup {
+          flex: 0 0 135px;
+          scroll-snap-align: start;
+          padding: 10px 8px 8px 8px;
+          border-radius: 14px;
+          gap: 8px;
+        }
+        .phone-frame {
+          max-width: 110px;
+          padding: 4px;
+          border-radius: 20px;
+          border-width: 2.5px;
+        }
+        .phone-frame::before {
+          top: 6px;
+          width: 22px;
+          height: 5px;
+          border-radius: 3px;
+        }
+        .phone-frame::after {
+          border-radius: 16px;
+        }
+        .phone-frame img {
+          border-radius: 15px;
+        }
+        .phone-caption .phone-title {
+          font-size: 11px;
+        }
+        .phone-caption .phone-desc {
+          font-size: 9px;
+          line-height: 1.25;
+          margin: 0;
+        }
+        .phone-mockup .tag {
+          font-size: 8.5px;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+      }
+
+      /* Extreme small devices (max-width: 380px) */
+      @media (max-width: 380px) {
+        .phone-mockup {
+          flex: 0 0 115px;
+        }
+        .phone-frame {
+          max-width: 90px;
+        }
+        .phone-caption .phone-title {
+          font-size: 10px;
+        }
+        .phone-caption .phone-desc {
+          display: none;
+        }
+      }
+    </style>
+    <!-- SLIDE 11: Admin App (Copy of Slide 10) -->
+    <section class="slide">
+      <div class="eyebrow">Admin Console</div>
+      <h1 class="slide-title display">Admin App</h1>
+      <p class="slide-sub">Comprehensive real-time command center for managers and administrators.</p>
+      
+      <div class="content-area grid" style="grid-template-columns: 1fr 1.2fr; gap:24px; align-items: center;">
+        <div style="display:flex; flex-direction:column; gap:16px; justify-content: center;">
+          <div class="card" style="padding:16px 20px;">
+            <span class="tag" style="align-self: flex-start; margin-bottom: 4px;">Real-Time Control</span>
+            <h3 style="font-size:16px; margin: 2px 0 8px 0; font-weight:700;">Campaign & List Management</h3>
+            <ul style="font-size:13px; line-height:1.5; margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px;">
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--accent); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Start, pause, and configure campaigns on-the-fly</li>
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--accent); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Upload lead lists and manage dialer pacing ratios</li>
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--accent); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Live agent state monitoring (Barge, Whisper, Monitor)</li>
+            </ul>
+          </div>
+          <div class="card" style="padding:16px 20px;">
+            <span class="tag amber" style="align-self: flex-start; margin-bottom: 4px;">Analytics</span>
+            <h3 style="font-size:16px; margin: 2px 0 8px 0; font-weight:700;">Live Dashboards & CDR Reports</h3>
+            <ul style="font-size:13px; line-height:1.5; margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px;">
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--amber); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Billing, CDR history, and agent performance reports</li>
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--amber); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> System firewall, network stats, and SIP trunk statuses</li>
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--amber); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Spam-marking management and DNC scrubber controls</li>
+            </ul>
+          </div>
+        </div>
+        <div class="image-card" style="padding: 6px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: space-between; height:auto;">
+          <div class="image-frame" style="height: auto; min-height: 0; background-color: #f1f5f9; padding:0; border:none; display:flex; justify-content:center; align-items:center;">
+            <img src="DialerAdmin.png" alt="Admin App Interface" style="border-radius:6px; max-width:100%; max-height:100%; object-fit:contain;">
+          </div>
+          <div class="image-caption" style="padding:4px 0 2px; justify-content:center; text-align:center; border:none;">
+            <div style="font-weight: 700; color: var(--text); font-size: 13px;">Admin App Interface</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: CRM URM -->
+    <section class="slide">
+      <div class="eyebrow">CRM Add-On</div>
+      <h1 class="slide-title display" style="margin-bottom:4px;">CRM URM <span class="accent">(Universal Relationship Management)</span></h1>
+      <p class="slide-sub" style="margin-bottom:8px;">All-in-one CRM including Sales, Accounts, Ticketing, HRMS, Task, and Helpdesk — with dialer and WhatsApp built right in.</p>
+ 
+      <div class="content-area grid" style="grid-template-columns: 1fr 1.2fr; gap:24px; align-items: center;">
+        <div style="display:flex; flex-direction:column; gap:16px; justify-content: center;">
+          <div class="card" style="padding:16px 20px;">
+            <span class="tag" style="align-self: flex-start; margin-bottom: 4px;">All IN ONE CRM</span>
+            <h3 style="font-size:16px; margin: 2px 0 8px 0; font-weight:700;">CRM Search & Channel Connect</h3>
+            <ul style="font-size:13px; line-height:1.5; margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px;">
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--accent); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> CRM lead-view page with full follow-up history</li>
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--accent); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Edit lead with Dialer Embedded (one-click call)</li>
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--accent); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Edit lead with WhatsApp Embedded (send in-app)</li>
+            </ul>
+          </div>
+          <div class="card" style="padding:16px 20px;">
+            <span class="tag amber" style="align-self: flex-start; margin-bottom: 4px;">All-in-one</span>
+            <h3 style="font-size:16px; margin: 2px 0 8px 0; font-weight:700;">Includes All Required CRMs</h3>
+            <ul style="font-size:13px; line-height:1.5; margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px;">
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--amber); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Helpdesk, HRMS, Task, and Sales CRMs</li>
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--amber); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> Ticketing, Accounts, and SuperAdmin modules</li>
+              <li style="display:flex; align-items:flex-start; color:var(--text);"><span style="color:var(--amber); margin-right:8px; font-weight:bold; margin-top:3px;">•</span> WhatsApp, Google, Email, SMS, and RCS Channels</li>
+            </ul>
+          </div>
+        </div>
+        <div class="image-card" style="padding: 6px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; justify-content: space-between; height:100%;">
+          <div class="image-frame" style="height: auto; min-height: 0; background-color: #f1f5f9; padding:0; border:none; display:flex; justify-content:center; align-items:center;">
+            <img src="All_IN_ONECRM.png" alt="CRM URM Dashboard" style="border-radius:6px; max-width:100%; max-height:100%; object-fit:contain;">
+          </div>
+          <div class="image-caption" style="padding:4px 0 2px; justify-content:center; text-align:center; border:none;">
+            <div style="font-weight: 700; color: var(--text); font-size: 13px;">CRM Lead & Channel View</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: Add-Ons & Key Terms -->
+    <section class="slide">
+      <div class="eyebrow">Add-Ons</div>
+      <h1 class="slide-title display">Add-Ons &amp; <span class="accent">Key Terms</span></h1>
+
+      <div class="content-area" style="display:flex; flex-direction:column; gap:18px;">
+        <div class="grid g4" style="gap:14px;">
+          <div class="card" style="text-align:center; padding:16px 12px;">
+            <div style="font-size:26px; margin-bottom:6px;">📞</div>
+            <h3 style="font-size:13px; margin-bottom:4px;">Truecaller Verification</h3>
+            <p class="mono" style="color:var(--cyan); font-size:15px; font-weight:700; margin-bottom:0;">₹11,000</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px 12px;">
+            <div style="font-size:26px; margin-bottom:6px;">💬</div>
+            <h3 style="font-size:13px; margin-bottom:4px;">Meta Integration</h3>
+            <p class="mono" style="color:var(--cyan); font-size:15px; font-weight:700; margin-bottom:0;">₹8,000/mo</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px 12px;">
+            <div style="font-size:26px; margin-bottom:6px;">🟢</div>
+            <h3 style="font-size:13px; margin-bottom:4px;">WhatsApp Server</h3>
+            <p class="mono" style="color:var(--cyan); font-size:15px; font-weight:700; margin-bottom:0;">₹15,000/mo</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px 12px;">
+            <div style="font-size:26px; margin-bottom:6px;">🤖</div>
+            <h3 style="font-size:13px; margin-bottom:4px;">AI Caller</h3>
+            <p class="mono" style="color:var(--cyan); font-size:15px; font-weight:700; margin-bottom:0;">₹7 / Minute</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px 12px;">
+            <div style="font-size:26px; margin-bottom:6px;">🌐</div>
+            <h3 style="font-size:13px; margin-bottom:4px;">WebRTC</h3>
+            <p class="mono" style="color:var(--cyan); font-size:15px; font-weight:700; margin-bottom:0;">₹200 / seat/mo</p>
+            <p style="color:var(--muted); font-size:11px; margin-bottom:0;">Waived for 15 seats</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px 12px;">
+            <div style="font-size:26px; margin-bottom:6px;">📱</div>
+            <h3 style="font-size:13px; margin-bottom:4px;">Mobile App</h3>
+            <p class="mono" style="color:var(--cyan); font-size:15px; font-weight:700; margin-bottom:0;">₹300 / agent/mo</p>
+            <p style="color:var(--muted); font-size:11px; margin-bottom:0;">iOS coming soon</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px 12px;">
+            <div style="font-size:26px; margin-bottom:6px;">🔧</div>
+            <h3 style="font-size:13px; margin-bottom:4px;">Customization</h3>
+            <p class="mono" style="color:var(--cyan); font-size:15px; font-weight:700; margin-bottom:0;">₹700/hr</p>
+            <p style="color:var(--muted); font-size:11px; margin-bottom:0;">IVR, API, Reports</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px 12px;">
+            <div style="font-size:26px; margin-bottom:6px;">📋</div>
+            <h3 style="font-size:13px; margin-bottom:4px;">CRM</h3>
+            <p style="color:var(--muted); font-size:12px; line-height:1.4; margin-bottom:0;">Lead Mgmt, Ticketing, HRMS, App, Google Sheet</p>
+          </div>
+        </div>
+        <div class="grid g3" style="gap:14px;">
+          <div class="card" style="text-align:center; padding:16px;">
+            <div style="font-size:28px; margin-bottom:8px;">✅</div>
+            <h3 style="font-size:13px; margin-bottom:6px;">Compliance First</h3>
+            <p style="color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:0;">100% genuine campaigns for opt-in clients only. DND/Spam/Govt policy adherence mandatory.</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px;">
+            <div style="font-size:28px; margin-bottom:8px;">🔐</div>
+            <h3 style="font-size:13px; margin-bottom:6px;">Secure Onboarding</h3>
+            <p style="color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:0;">Aadhaar/Passport OTP-based E-KYC required for all clients.</p>
+          </div>
+          <div class="card" style="text-align:center; padding:16px;">
+            <div style="font-size:28px; margin-bottom:8px;">🏆</div>
+            <h3 style="font-size:13px; margin-bottom:6px;">Satisfaction Guaranteed</h3>
+            <p style="color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:0;">72-hour refund valid till PoC or max 7 days with client NoC (T&C apply).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: Order Free Live Demo -->
+    <section class="slide">
+      <div class="eyebrow">Get Started</div>
+      <h1 class="slide-title display">Order Free Live Demo <span class="accent">Today</span></h1>
+
+      <div class="content-area" style="display:flex; flex-direction:column; gap:20px;">
+        <div class="grid g4" style="gap:14px;">
+          <div class="card" style="text-align:center; padding:20px 14px;">
+            <div style="font-size:30px; margin-bottom:10px;">🤝</div>
+            <h3 style="font-size:13.5px;">Proposal Approval</h3>
+            <p style="color:var(--muted); font-size:12.5px; line-height:1.5; margin-bottom:0;">Review and confirm commercial model.</p>
+          </div>
+          <div class="card" style="text-align:center; padding:20px 14px;">
+            <div style="font-size:30px; margin-bottom:10px;">👥</div>
+            <h3 style="font-size:13.5px;">Onboarding</h3>
+            <p style="color:var(--muted); font-size:12.5px; line-height:1.5; margin-bottom:0;">Complete setup and training.</p>
+          </div>
+          <div class="card" style="text-align:center; padding:20px 14px;">
+            <div style="font-size:30px; margin-bottom:10px;">🎯</div>
+            <h3 style="font-size:13.5px;">Live Demo / PoC</h3>
+            <p style="color:var(--muted); font-size:12.5px; line-height:1.5; margin-bottom:0;">Experience the platform firsthand.</p>
+          </div>
+          <div class="card" style="text-align:center; padding:20px 14px;">
+            <div style="font-size:30px; margin-bottom:10px;">🚀</div>
+            <h3 style="font-size:13.5px;">Go Live</h3>
+            <p style="color:var(--muted); font-size:12.5px; line-height:1.5; margin-bottom:0;">Start calling with full support.</p>
+          </div>
+        </div>
+
+        <div class="grid g2" style="gap:16px;">
+          <div class="card" style="padding:20px;">
+            <h3 style="margin-bottom:14px; font-size:15px;">📊 Access Detailed Rate Sheets</h3>
+            <ul class="plain" style="font-size:13px;">
+              <li>Self-Help Prices: <a class="link" href="https://bit.ly/Avyukta-Rates" target="_blank">bit.ly/Avyukta-Rates</a></li>
+              <li>INR Rates: <a class="link" href="https://bit.ly/Avy_INR_Ratesheet" target="_blank">bit.ly/Avy_INR_Ratesheet</a></li>
+              <li>USD Rates: <a class="link" href="https://bit.ly/Avy_USD_Ratesheet" target="_blank">bit.ly/Avy_USD_Ratesheet</a></li>
+              <li>Global VoIP: <a class="link" href="https://bit.ly/A2ZAICPL" target="_blank">bit.ly/A2ZAICPL</a></li>
+              <li>Contact: <a class="link" href="https://wa.me/918560000600?text=Hi" target="_blank">wa.me/918560000600</a></li>
+            </ul>
+          </div>
+          <div class="card" style="padding:20px;">
+            <h3 style="margin-bottom:14px; font-size:15px;">🌐 Explore Our Additional Products</h3>
+            <ul class="plain amber" style="font-size:13px;">
+              <li>🇮🇳 India Calling: <a class="link" href="https://www.avyukta.in/domestic" target="_blank">avyukta.in/domestic</a></li>
+              <li>📡 VoIP Calling: <a class="link" href="https://www.avyukta.in/international" target="_blank">avyukta.in/international</a></li>
+              <li>🤖 AI Caller: <a class="link" href="https://www.avyukta.in/ai" target="_blank">avyukta.in/ai</a></li>
+              <li>💬 WhatsApp Solutions: <a class="link" href="https://www.avyukta.in/whatsapp" target="_blank">avyukta.in/whatsapp</a></li>
+              <li>📋 CRM Solutions: <a class="link" href="https://www.avyukta.in/crm-solution" target="_blank">avyukta.in/crm-solution</a></li>
+              <li>🇦🇪 Dubai Calling: <a class="link" href="https://www.avyukta.in/dubai" target="_blank">avyukta.in/dubai</a></li>
+              <li>📢 Digital Services: <a class="link" href="https://www.avyukta.in/promotions" target="_blank">avyukta.in/promotions</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <a class="cta-btn" href="https://wa.me/918560000600?text=Hi" target="_blank" style="align-self:center;">Order a free live demo →</a>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const total = slides.length;
+      let current = 0;
+
+      const rail = document.getElementById('rail');
+      slides.forEach((_, i) => {
+        const d = document.createElement('div');
+        d.className = 'dot' + (i === 0 ? ' active' : '');
+        d.addEventListener('click', () => go(i));
+        rail.appendChild(d);
+      });
+      const dots = Array.from(rail.children);
+
+      const topbarFill = document.getElementById('topbarFill');
+      const idxText = document.getElementById('idxText');
+
+      function pad(n) { return n < 10 ? '0' + n : n; }
+
+      function render() {
+        slides.forEach((s, i) => {
+          s.classList.remove('active', 'prev');
+          if (i === current) s.classList.add('active');
+          else if (i < current) s.classList.add('prev');
+        });
+        dots.forEach((d, i) => d.classList.toggle('active', i === current));
+        topbarFill.style.width = ((current + 1) / total * 100) + '%';
+        idxText.textContent = 'CH ' + pad(current + 1) + ' / ' + total;
+      }
+
+      function go(i) {
+        if (i < 0) i = 0;
+        if (i > total - 1) i = total - 1;
+        current = i;
+        render();
+      }
+
+      document.getElementById('btnLeft').addEventListener('click', () => go(current - 1));
+      document.getElementById('btnRight').addEventListener('click', () => go(current + 1));
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'PageDown') { go(current + 1); }
+        if (e.key === 'ArrowLeft' || e.key === 'PageUp') { go(current - 1); }
+      });
+
+      // touch swipe
+      let touchStartX = null;
+      document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+      document.addEventListener('touchend', (e) => {
+        if (touchStartX === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 50) {
+          if (dx < 0) go(current + 1); else go(current - 1);
+        }
+        touchStartX = null;
+      }, { passive: true });
+
+      function canScroll(el, deltaY) {
+        if (!el || el === document.body || el === document.documentElement) return false;
+        const style = window.getComputedStyle(el);
+        const overflowY = style.overflowY;
+        const isScrollable = overflowY === 'auto' || overflowY === 'scroll';
+        if (isScrollable && el.scrollHeight > el.clientHeight) {
+          if (deltaY > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 2) {
+            return true;
+          }
+          if (deltaY < 0 && el.scrollTop > 2) {
+            return true;
+          }
+        }
+        return canScroll(el.parentElement, deltaY);
+      }
+
+      // wheel navigation
+      let wheelLock = false;
+      window.addEventListener('wheel', (e) => {
+        if (canScroll(e.target, e.deltaY)) return;
+        const activeSlide = slides[current];
+        const scrollable = activeSlide.scrollHeight > activeSlide.clientHeight + 4;
+        if (scrollable) {
+          const atTop = activeSlide.scrollTop <= 2;
+          const atBottom = activeSlide.scrollTop + activeSlide.clientHeight >= activeSlide.scrollHeight - 2;
+          if (!((e.deltaY < 0 && atTop) || (e.deltaY > 0 && atBottom))) return;
+        }
+        if (wheelLock) return;
+        if (Math.abs(e.deltaY) < 30) return;
+        wheelLock = true;
+        if (e.deltaY > 0) go(current + 1); else go(current - 1);
+        setTimeout(() => wheelLock = false, 550);
+      }, { passive: true });
+
+      render();
+    })();
+  </script>
+
+</body>
+
+</html>
