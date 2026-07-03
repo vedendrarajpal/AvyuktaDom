@@ -816,7 +816,7 @@
 
     @media(max-width:760px) {
       .slide {
-        padding: 76px 6vw 96px 6vw;
+        padding: 70px 4vw 86px 4vw;
       }
 
       .rail {
@@ -824,12 +824,26 @@
       }
 
       .nav-arrow {
-        width: 14vw;
+        width: 12vw;
+      }
+
+      .nav-arrow svg {
+        width: 26px;
+        height: 26px;
+      }
+
+      .nav-arrow.left {
+        padding-left: 10px;
+      }
+
+      .nav-arrow.right {
+        padding-right: 10px;
       }
 
       .pillars {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
       }
 
       .flow {
@@ -839,6 +853,112 @@
       .flow .arrow {
         transform: rotate(90deg);
         margin: 4px 0;
+      }
+
+      /* --- Hero slide: stack to column on mobile --- */
+      .slide-hero-inner {
+        flex-direction: column !important;
+        gap: 18px !important;
+      }
+
+      .slide-hero-left {
+        flex: unset !important;
+        width: 100% !important;
+      }
+
+      .slide-hero-right {
+        flex: unset !important;
+        width: 100% !important;
+        justify-content: center !important;
+      }
+
+      .slide-hero-right img {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+
+      /* --- Hero stats grid: 2-col on mobile --- */
+      .hero-stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+
+      /* --- Slide 11 & 12 content grid: stack on mobile --- */
+      .slide-two-col {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* --- General grids collapse to 1 col --- */
+      .g3, .g4 {
+        grid-template-columns: 1fr !important;
+      }
+
+      .g2 {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* --- Typography --- */
+      h1.slide-title {
+        font-size: clamp(20px, 6vw, 30px) !important;
+        margin-bottom: 6px !important;
+      }
+
+      .slide-sub {
+        font-size: 13px !important;
+        margin-bottom: 14px !important;
+      }
+
+      /* --- Footer bar --- */
+      .footer-bar {
+        padding: 0 14px;
+        font-size: 11px;
+        height: 50px;
+      }
+
+      .footer-bar .hint {
+        display: none;
+      }
+
+      /* --- Cards reduce padding --- */
+      .card {
+        padding: 16px;
+      }
+
+      /* --- Stat number size --- */
+      .stat .num {
+        font-size: clamp(20px, 6vw, 32px);
+      }
+
+      /* --- CTA button full width --- */
+      .cta-btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* --- Table wrap: ensure horizontal scroll --- */
+      .table-wrap {
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* --- Image frame: reduce min height --- */
+      .image-frame {
+        min-height: 140px;
+      }
+    }
+
+    /* Extra small devices */
+    @media(max-width: 420px) {
+      .slide {
+        padding: 66px 3vw 82px 3vw;
+      }
+
+      .pillars {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+      }
+
+      .footer-bar {
+        padding: 0 10px;
+        font-size: 10px;
       }
     }
   </style>
@@ -873,9 +993,11 @@
   <div class="deck" id="deck">
 
     <!-- SLIDE 1: HERO -->
-    <section class="slide" style="flex-direction:row; gap:30px; align-items:center; padding-top:60px; padding-bottom:60px;">
+    <section class="slide" style="padding-top:60px; padding-bottom:60px;">
+      <!-- Hero inner row (stacks on mobile) -->
+      <div class="slide-hero-inner" style="display:flex; flex-direction:row; gap:30px; align-items:center; flex:1; min-height:0;">
       <!-- Left column -->
-      <div style="flex:1.2; display:flex; flex-direction:column; gap:12px; justify-content:center;">
+      <div class="slide-hero-left" style="flex:1.2; display:flex; flex-direction:column; gap:12px; justify-content:center;">
         <!-- Logo -->
         <img src="logo1.png" alt="Avyukta Intellicall Logo"
           style="height:38px; width:auto; object-fit:contain; object-position:left; filter:drop-shadow(0 2px 6px rgba(2,132,199,.2));">
@@ -885,7 +1007,7 @@
         <p class="slide-sub" style="font-size:14px; margin-bottom:12px; line-height:1.45;">Dialer · CRM · AI Caller · AI Chat Bot · HRMS · Meta · Google · Email · WhatsApp · Instagram/FB · SMS · RCS — routed over SIP, PRI, GSM or VoIP trunking, from a single sign-on.</p>
 
         <!-- Stats row -->
-        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
+        <div class="hero-stats-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:10px;">
           <div class="stat card" style="padding:8px 6px; border-radius:10px;">
             <div class="num" style="font-size:16px;">16+ yrs</div>
             <div class="lbl" style="font-size:10px;">Lowest prices since</div>
@@ -916,10 +1038,11 @@
       </div>
 
       <!-- Right column: hero image -->
-      <div style="flex:0.8; display:flex; align-items:center; justify-content:center;">
+      <div class="slide-hero-right" style="flex:0.8; display:flex; align-items:center; justify-content:center;">
         <img src="Avyukta1.png" alt="Avyukta Platform Dashboard"
           style="width:100%; max-width:440px; border-radius:12px; box-shadow:0 8px 30px rgba(2,132,199,.15); object-fit:cover; border:1.5px solid var(--line);">
       </div>
+      </div><!-- end slide-hero-inner -->
     </section>
 
     <!-- SLIDE 2: SIP/PRI/GSM + Predictive dialer why -->
@@ -1912,7 +2035,7 @@
       <h1 class="slide-title display">Admin App</h1>
       <p class="slide-sub">Comprehensive real-time command center for managers and administrators.</p>
       
-      <div class="content-area grid" style="grid-template-columns: 1fr 1.2fr; gap:24px; align-items: center;">
+      <div class="content-area grid slide-two-col" style="grid-template-columns: 1fr 1.2fr; gap:24px; align-items: center;">
         <div style="display:flex; flex-direction:column; gap:16px; justify-content: center;">
           <div class="card" style="padding:16px 20px;">
             <span class="tag" style="align-self: flex-start; margin-bottom: 4px;">Real-Time Control</span>
@@ -1950,7 +2073,7 @@
       <h1 class="slide-title display" style="margin-bottom:4px;">CRM URM <span class="accent">(Universal Relationship Management)</span></h1>
       <p class="slide-sub" style="margin-bottom:8px;">All-in-one CRM including Sales, Accounts, Ticketing, HRMS, Task, and Helpdesk — with dialer and WhatsApp built right in.</p>
  
-      <div class="content-area grid" style="grid-template-columns: 1fr 1.2fr; gap:24px; align-items: center;">
+      <div class="content-area grid slide-two-col" style="grid-template-columns: 1fr 1.2fr; gap:24px; align-items: center;">
         <div style="display:flex; flex-direction:column; gap:16px; justify-content: center;">
           <div class="card" style="padding:16px 20px;">
             <span class="tag" style="align-self: flex-start; margin-bottom: 4px;">All IN ONE CRM</span>
